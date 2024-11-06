@@ -1,0 +1,34 @@
+image: maven:3.3.9
+
+pipelines:
+  default:
+    - step:
+        name: SonarQube analysis
+        script:
+          - |
+            if [ "${BITBUCKET_PR_DESTINATION_BRANCH}" = "master" ]; then
+              echo "PR is targeting master, running SonarQube analysis"
+              pipe: sonarsource/sonarqube-scan:2.0.1
+              variables:
+                SONAR_HOST_URL: ${SONAR_HOST_URL}
+                SONAR_TOKEN: ${SONAR_TOKEN}
+            else
+              echo "Skipping SonarQube analysis: PR destination is not master"
+            fi
+        services:
+          - docker
+  branches:
+    master:
+      - step:
+          name: SonarQube analysis on master
+          script:
+            - pipe: sonarsource/sonarqube-scan:2.0.1
+              variables:
+                SONAR_HOST_URL: ${SONAR_HOST_URL}
+                SONAR_TOKEN: ${SONAR_TOKEN}
+          services:
+            - docker
+clone:
+  depth: full
+options:
+  docker: true
